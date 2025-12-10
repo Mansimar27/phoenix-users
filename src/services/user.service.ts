@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/jwt.util";
+import { ApiError } from "../utils/apiError";
+import { authService } from "./auth.service";
 import { User, IUser } from "../models/user.model";
 
 export async function registerUser(
@@ -9,29 +10,36 @@ export async function registerUser(
 ): Promise<IUser> {
   const existing = await User.findOne({ email });
   if (existing) {
-    throw new Error("User with this email already exists");
+    throw ApiError.badRequest("User with this email already exists");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = new User({ name, email, password: hashedPassword });
+
+  const user = new User({
+    name,
+    email,
+    password: hashedPassword,
+  });
+
   return user.save();
 }
 
 export async function loginUser(email: string, password: string) {
   const user = await User.findOne({ email });
   if (!user) {
-    throw new Error("Invalid credentials");
+    throw ApiError.badRequest("Invalid credentials");
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    throw new Error("Invalid credentials");
+    throw ApiError.badRequest("Invalid credentials");
   }
 
-  const token = generateToken(user._id.toString());
+  // 🔥 Now use refresh-token logic
+  const tokens = await authService.createTokens(user._id.toString());
 
   return {
-    token,
+    ...tokens,
     user: { id: user._id, name: user.name, email: user.email },
   };
 }
