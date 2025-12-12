@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { ApiError } from "../utils/apiError";
-import { authService } from "./auth.service";
 import { User, IUser } from "../models/user.model";
+import { generateAccessToken, generateRefreshToken } from "../utils/jwt.util";
 
 export async function registerUser(
   name: string,
@@ -35,11 +35,16 @@ export async function loginUser(email: string, password: string) {
     throw ApiError.badRequest("Invalid credentials");
   }
 
-  // 🔥 Now use refresh-token logic
-  const tokens = await authService.createTokens(user._id.toString());
+  const accessToken = generateAccessToken(user._id.toString());
+  const refreshToken = generateRefreshToken(user._id.toString());
+
+  // save RT in DB
+  user.refreshToken = refreshToken;
+  await user.save();
 
   return {
-    ...tokens,
+    accessToken,
+    refreshToken,
     user: { id: user._id, name: user.name, email: user.email },
   };
 }
