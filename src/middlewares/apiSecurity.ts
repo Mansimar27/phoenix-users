@@ -1,39 +1,40 @@
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import { Express } from "express";
 import compression from "compression";
+import express, { Express } from "express";
 import rateLimit from "express-rate-limit";
-import mongoSanitize from "express-mongo-sanitize";
 
 export const applySecurityMiddlewares = (app: Express) => {
-  // Secure headers also prevents XSS attacks.
+  // Body parsing and limiting.
+  app.use(express.json({ limit: "100kb" }));
+  app.use(express.urlencoded({ extended: false, limit: "100kb" }));
+
+  // Secure headers and prevents XSS attacks.
   app.use(helmet());
-
-  // Logging
-  app.use(morgan("dev"));
-
-  // Compress responses
-  app.use(compression());
-
-  // Prevent MongoDB operator injection
-  app.use(mongoSanitize());
 
   // CORS
   app.use(
     cors({
       origin: "*",
-      methods: ["GET", "PUT", "POST"],
+      methods: ["GET", "PUT", "POST", "PATCH"],
       allowedHeaders: ["Content-Type", "Authorization"],
     })
   );
 
-  // Rate limit: 10 requests in 1 minute per IP
+  // Rate limit: 30 requests in 1 minute per IP
   app.use(
+    "/api",
     rateLimit({
-      max: 10,
+      max: 30,
       windowMs: 1 * 60 * 1000,
       message: "Too many requests, please try again later.",
     })
   );
+
+  // Compress responses
+  app.use(compression());
+
+  // Logging
+  app.use(morgan("dev"));
 };

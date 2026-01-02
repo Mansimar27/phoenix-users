@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from "express";
 import { ApiError } from "../utils/apiError";
+import { Request, Response, NextFunction } from "express";
 
 export function errorHandler(
   err: any,
@@ -7,7 +7,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ) {
-  console.error("🔥 Error:", err);
+  console.error("🔥Error- ", err);
 
   if (err instanceof ApiError) {
     return res.status(err.statusCode).json({

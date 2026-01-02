@@ -6,21 +6,19 @@ import userRoutes from "./routes/user.routes";
 import { errorHandler } from "./middlewares/errorHandler";
 import { applySecurityMiddlewares } from "./middlewares/apiSecurity";
 
-// Express App.
+// Express App init.
 const app = express();
-app.use(express.json());
 const { PORT } = ENV || 5555;
 
 // Security Middlewares for All APIs.
 applySecurityMiddlewares(app);
 
-// Base Route.
-app.get("/", (_req, res) => {
-  res.send("User Service is running.");
-});
-// Health Check Route.
-app.get("/health", (_req, res) => {
-  res.send("Ok!");
+// Shared Routes.
+app.get(["/", "/api", "/health"], (_req, res) => {
+  res.status(200).send({
+    success: true,
+    message: "User Service is running.",
+  });
 });
 
 // Auth Routes.
@@ -33,11 +31,13 @@ app.use("/api/users", userRoutes);
 app.use(errorHandler);
 
 async function startServer() {
+  // First Connect to DB.
   await connectDB();
 
   app.listen(PORT, () => {
-    console.log(`✅ Server started on port- ${PORT}.`);
+    console.log(`✅Server started on port- ${PORT}.`);
   });
 }
 
+// Start Express App Server.
 startServer();
