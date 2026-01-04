@@ -40,6 +40,14 @@ export async function loginUserController(
     }
 
     const result = await loginUser(email, password);
+
+    res.cookie("refreshToken", result.refreshToken, {
+      secure: true,
+      httpOnly: true,
+      sameSite: "strict",
+      path: "/api/auth/refresh-token",
+    });
+
     return ApiResponse.success(res, "Login successful", result);
   } catch (error: any) {
     return next(ApiError.internal(error.message));
@@ -54,7 +62,10 @@ export const getProfile = async (
   try {
     const userId = req.userId;
 
-    const user = await User.findById(userId).select("-password");
+    const user = await User.findById(userId).select([
+      "-password",
+      "-refreshToken",
+    ]);
     if (!user) return next(ApiError.notFound("User not found"));
 
     return ApiResponse.success(res, "Profile fetched", user);
@@ -70,13 +81,13 @@ export const updateProfile = async (
 ) => {
   try {
     const userId = req.userId;
-    const { name, email } = req.body;
+    const { name } = req.body;
 
     const updated = await User.findByIdAndUpdate(
       userId,
-      { name, email },
+      { name },
       { new: true }
-    ).select("-password");
+    ).select(["-password", "-refreshToken"]);
 
     return ApiResponse.success(res, "Profile updated", updated);
   } catch (err: any) {

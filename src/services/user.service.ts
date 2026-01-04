@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { ApiError } from "../utils/apiError";
 import { User, IUser } from "../models/user.model";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwt.util";
+import { authService } from "../services/auth.service";
 
 export async function registerUser(
   name: string,
@@ -35,8 +35,9 @@ export async function loginUser(email: string, password: string) {
     throw ApiError.badRequest("Invalid credentials");
   }
 
-  const accessToken = generateAccessToken(user._id.toString());
-  const refreshToken = generateRefreshToken(user._id.toString());
+  const { accessToken, refreshToken } = await authService.createTokens(
+    user._id.toString()
+  );
 
   // save RT in DB
   user.refreshToken = refreshToken;

@@ -2,11 +2,13 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
+import cookieParser from "cookie-parser";
 import express, { Express } from "express";
 import rateLimit from "express-rate-limit";
 
 export const applySecurityMiddlewares = (app: Express) => {
   // Body parsing and limiting.
+  app.use(cookieParser());
   app.use(express.json({ limit: "100kb" }));
   app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 

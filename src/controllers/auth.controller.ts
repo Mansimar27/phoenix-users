@@ -4,32 +4,6 @@ import { authService } from "../services/auth.service";
 import { Request, Response, NextFunction } from "express";
 import { RefreshToken } from "../models/refreshToken.model";
 
-export const login = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { user }: any = req; // user validated in userService login()
-
-    const tokens = await authService.createTokens(user.id);
-
-    res.cookie("refreshToken", tokens.refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/api/auth/refresh-token",
-    });
-
-    return ApiResponse.success(res, "Login successful", {
-      accessToken: tokens.accessToken,
-      user,
-    });
-  } catch (error: any) {
-    next(ApiError.internal(error.message));
-  }
-};
-
 export const refreshToken = async (
   req: Request,
   res: Response,
@@ -42,8 +16,8 @@ export const refreshToken = async (
     const tokens = await authService.rotateRefreshToken(refreshToken);
 
     res.cookie("refreshToken", tokens.refreshToken, {
-      httpOnly: true,
       secure: true,
+      httpOnly: true,
       sameSite: "strict",
       path: "/api/auth/refresh-token",
     });
@@ -69,8 +43,8 @@ export const logout = async (
     }
 
     res.clearCookie("refreshToken", {
-      httpOnly: true,
       secure: true,
+      httpOnly: true,
       sameSite: "strict",
     });
 

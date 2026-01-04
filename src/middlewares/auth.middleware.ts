@@ -18,7 +18,7 @@ export function authMiddleware(
     const token = authHeader.split(" ")[1];
     const decoded = verifyToken(token);
 
-    (req as any).user = decoded;
+    (req as any).userId = (decoded as any).userId;
     next();
   } catch {
     return res

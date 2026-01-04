@@ -10,11 +10,18 @@ export const authService = {
     const accessToken = generateAccessToken(userId);
     const refreshToken = generateRefreshToken(userId);
 
-    await RefreshToken.create({
-      userId,
-      token: refreshToken,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    });
+    await RefreshToken.updateOne(
+      { userId },
+      {
+        $set: {
+          token: refreshToken,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+      },
+      {
+        upsert: true,
+      }
+    );
 
     return { accessToken, refreshToken };
   },
